@@ -27,12 +27,10 @@ class Client:
     def receive_message(self):
         try:
             while True:
-                print("Receiving message")
                 message = self.client_socket.recv(1024).decode()
-                print(f"Received message: {message}")
+                print(f"{message}")
                 if not message:
                     break
-                print(f"Received message: {message}")
         except ConnectionError:
             print("Disconnected.")
 
@@ -41,12 +39,9 @@ class Client:
 
     def sign_up(self, creds):
         username, password = creds.split('\n')
-        print(f"Signing up...: {username}")
         db.register(username, password)
-        print(db.is_account_exist(username))
 
     def login(self, creds):
-        print("Logging in...")
         self.send_message(creds)
 
     def disconnect(self):
@@ -70,7 +65,7 @@ if __name__ == "__main__":
 
     # Loop for sending messages
     while True:
-        print("Enter a message: ")
+        print("> ", end='')
         chat_client.send_message(input(""))
 
     # chat_client.disconnect()
