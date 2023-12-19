@@ -1,7 +1,9 @@
 # DONE: User Registraion and Login
 # DONE: Implement Basic Messeaging Functionality
 # DONE: Implement storing a hash of the password instead of plain text
+# DONE: Fix get_color bug it will enter infinite loop if we have more than 6 clients
 # TODO: When a client closes the connection remove him from current online clients
+# TODO: Find a way to make the database hanlde authentication
 
 import socket
 from colorama import Fore
@@ -12,7 +14,15 @@ from db import DB
 
 colors = [(Fore.RED, False), (Fore.GREEN, False), (Fore.YELLOW , False), (Fore.BLUE , False), (Fore.MAGENTA, False), (Fore.CYAN , False)]
 
+def reset_colors():
+    for item in colors:
+        item = (item[0], False)
+
 def get_color():
+    # To avoid infinte loop reset colors and reuse them if the clients are more than len(colors)
+    if all(item[1] is True for item in colors):
+        reset_colors()
+
     rand_color = colors[random.randint(0, len(colors) - 1)]
     while rand_color[1]:
         rand_color = colors[random.randint(0, len(colors) - 1)]
