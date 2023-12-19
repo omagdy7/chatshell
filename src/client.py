@@ -1,11 +1,13 @@
 import socket
 import threading
-from db_mongo import DB
+from colorama import Fore
+from db import DB
 
 db = DB()
 
 class Client:
     def __init__(self, server_host, server_port):
+        self.username = None
         self.server_host = server_host
         self.server_port = server_port
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -27,9 +29,12 @@ class Client:
     def receive_message(self):
         try:
             while True:
-                message = self.client_socket.recv(1024).decode()
-                print(f"{message}")
-                if not message:
+                try:
+                    message = self.client_socket.recv(1024).decode()
+                    print(f"{message}")
+                    if not message:
+                        break
+                except KeyboardInterrupt:
                     break
         except ConnectionError:
             print("Disconnected.")
@@ -37,8 +42,12 @@ class Client:
     def start_receive_thread(self):
         self.receive_thread.start()
 
+    def stop_receive_thread(self):
+        self.receive_thread.start()
+
     def sign_up(self, creds):
-        username, password = creds.split('\n')
+        username, password = creds.split(':')
+        self.username = username
         db.register(username, password)
 
     def login(self, creds):
@@ -46,6 +55,7 @@ class Client:
 
     def disconnect(self):
         self.client_socket.close()
+        db.user_logout(self.username)
 
 # Usage example:
 if __name__ == "__main__":
@@ -56,7 +66,8 @@ if __name__ == "__main__":
     chat_client.connect()
     username = input("Username: ")
     password = input("Password: ")
-    creds = f"{username}\n{password}"
+    print("----------------------------------------")
+    creds = f"{username}:{password}"
     chat_client.sign_up(creds)
     chat_client.login(creds)
 
@@ -65,7 +76,9 @@ if __name__ == "__main__":
 
     # Loop for sending messages
     while True:
-        print("> ", end='')
-        chat_client.send_message(input(""))
-
-    # chat_client.disconnect()
+        try:
+            message = input(f"{Fore.WHITE}")
+            chat_client.send_message(message)
+        except KeyboardInterrupt:
+            chat_client.disconnect()
+            break
