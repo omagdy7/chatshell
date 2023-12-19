@@ -3,7 +3,8 @@
 
 import socket
 import threading
-from db import DB
+from concurrent.futures import ThreadPoolExecutor
+from db_mongo import DB
 
 # Set up a socket to listen for incoming connections.
 # Initialize data structures to store user credentials (e.g., usernames and passwords).
@@ -13,6 +14,7 @@ class Server():
         self.port = port
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.clients = {}
+        self.db = DB()
 
     def serve(self):
         self.server_socket.bind((self.host, self.port))
@@ -20,38 +22,46 @@ class Server():
 
         print(f"Server is listening on {self.host}:{self.port}")
 
-        while True:
-            client_socket, client_address = self.server_socket.accept()
-            print(f"Connection established with {client_address}")
+        with ThreadPoolExecutor() as executor:
+            while True:
+                client_socket, client_address = self.server_socket.accept()
+                print(f"Connection established with {client_address}")
 
-            # Create a new thread to handle the client connection
-            client_thread = threading.Thread(target=self.handle_client, args=(client_socket, client_address))
-            client_thread.start()
+                # Submit the handle_client function to the thread pool
+                executor.submit(self.handle_client, client_socket, client_address)
 
     def handle_client(self, client_socket, client_address):
-        # Receive username and password from the client
-        creds = client_socket.recv(1024).decode()
-        username, password = creds.split('\n')
-
-        # Implement user authentication logic here (for example, a basic check)
-        if self.authenticate_user(username, password):
-            # If authenticated, add the client to the dictionary of connected clients
-            self.clients[username] = client_socket
-            print(f"{username} connected.")
-
-            # Example: Send a welcome message to the client
-            client_socket.sendall(f"Welcome to the chat! {username}".encode())
-
+        print("sock: ", client_socket)
+        print("clients: ", self.clients.values())
+        # user already authed
+        if client_socket in self.clients.values():
+            message = client_socket.recv(1024).decode()
+            print("I am already authed an sending messages")
+            for sock in self.clients.values():
+                sock.sendall(f"{message}".encode())
         else:
-            # If not authenticated, close the connection
-            print("Authentication failed.")
-            client_socket.sendall("Authentication failed. Closing connection.".encode())
-            client_socket.close()
+            creds = client_socket.recv(1024).decode()
+            username, password = creds.split('\n')
+            if self.authenticate_user(username, password):
+                # If authenticated, add the client to the dictionary of connected clients
+                client_id = username + '_' + str(client_address)  # Modify this to create a unique identifier
+                self.clients[client_id] = client_socket
+                print(f"{username} connected.")
+
+                # Example: Send a welcome message to the client
+                for sock in self.clients.values():
+                    sock.sendall(f"Welcome to the chat! {username}".encode())
+
+            else:
+                # If not authenticated, close the connection
+                print("Authentication failed.")
+                client_socket.sendall("Authentication failed. Closing connection.".encode())
+                client_socket.close()
 
     def authenticate_user(self, username, password):
-        db = DB()
-        if username in db.credentials:
-            if db.get_password(username) == password:
+        print("Authenticating user")
+        if self.db.is_account_exist(username):
+            if self.db.get_password(username) == password:
                 return True
 
         return False
@@ -61,10 +71,10 @@ class Server():
     def stop(self):
         self.server_socket.close()
 
-# # Usage example:
-# if __name__ == "__main__":
-#     HOST = '127.0.0.1'  # Replace with your server's IP address
-#     PORT = 12345         # Replace with your desired port number
-#
-#     chat_server = Server(HOST, PORT)
-#     chat_server.serve()
+# Usage example:
+if __name__ == "__main__":
+    HOST = '127.0.0.1'  # Replace with your server's IP address
+    PORT = 12345         # Replace with your desired port number
+
+    chat_server = Server(HOST, PORT)
+    chat_server.serve()

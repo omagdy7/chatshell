@@ -1,11 +1,15 @@
 import socket
-from db import DB
+import threading
+from db_mongo import DB
+
+db = DB()
 
 class Client:
     def __init__(self, server_host, server_port):
         self.server_host = server_host
         self.server_port = server_port
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.receive_thread = threading.Thread(target=self.receive_message)
 
     def connect(self):
         try:
@@ -23,6 +27,7 @@ class Client:
     def receive_message(self):
         try:
             while True:
+                print("Receiving message")
                 message = self.client_socket.recv(1024).decode()
                 print(f"Received message: {message}")
                 if not message:
@@ -31,15 +36,17 @@ class Client:
         except ConnectionError:
             print("Disconnected.")
 
+    def start_receive_thread(self):
+        self.receive_thread.start()
+
     def sign_up(self, creds):
         username, password = creds.split('\n')
-        db = DB()
         print(f"Signing up...: {username}")
-        db.add_user(username, password)
+        db.register(username, password)
+        print(db.is_account_exist(username))
 
     def login(self, creds):
-        print("Loging in...")
-        creds = "admin\npassword"
+        print("Logging in...")
         self.send_message(creds)
 
     def disconnect(self):
@@ -52,12 +59,18 @@ if __name__ == "__main__":
 
     chat_client = Client(HOST, PORT)
     chat_client.connect()
-    creds = "admin\npassword"
+    username = input("Username: ")
+    password = input("Password: ")
+    creds = f"{username}\n{password}"
     chat_client.sign_up(creds)
     chat_client.login(creds)
 
-    # Example message sending and receiving (for demonstration)
-    chat_client.receive_message()
+    # Start the separate thread for receiving messages
+    chat_client.start_receive_thread()
 
-    # Disconnect when done
-    chat_client.disconnect()
+    # Loop for sending messages
+    while True:
+        print("Enter a message: ")
+        chat_client.send_message(input(""))
+
+    # chat_client.disconnect()
