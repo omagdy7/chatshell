@@ -13,7 +13,12 @@ import random
 from concurrent.futures import ThreadPoolExecutor
 from db import DB
 
-colors = [(Fore.RED, False), (Fore.GREEN, False), (Fore.YELLOW , False), (Fore.BLUE , False), (Fore.MAGENTA, False), (Fore.CYAN , False)]
+colors = [(Fore.RED,     False),
+          (Fore.GREEN,   False),
+          (Fore.YELLOW,  False),
+          (Fore.BLUE,    False),
+          (Fore.MAGENTA, False),
+          (Fore.CYAN,    False)]
 
 def reset_colors():
     for item in colors:
@@ -22,7 +27,6 @@ def reset_colors():
 def get_color():
     # To avoid infinte loop reset colors and reuse them if the clients are more than len(colors)
     if all(item[1] for item in colors):
-        print("Reseting colors")
         reset_colors()
 
     rand_color = colors[random.randint(0, len(colors) - 1)]
@@ -41,6 +45,13 @@ def get_key_from_value(dictionary, search_value):
 
 class Server():
     def __init__(self, host, port):
+        """
+        Initialize the Server class.
+
+        Args:
+        - host (str): The host IP address.
+        - port (int): The port number to listen on.
+        """
         self.host = host
         self.port = port
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -48,16 +59,19 @@ class Server():
         self.db = DB()
 
     def serve(self):
+        """
+        Start the server, listen for incoming connections, and handle them using a thread pool.
+        """
         self.server_socket.bind((self.host, self.port))
         self.server_socket.listen()
 
-        print(f"Server is listening on {self.host}:{self.port}")
+        print(f"[LOG]: Listening on {self.host}:{self.port}")
 
         with ThreadPoolExecutor() as executor:
             while True:
                 try:
                     client_socket, client_address = self.server_socket.accept()
-                    print(f"Connection established with {client_address}")
+                    print(f"[LOG]: Connection established with {client_address}")
 
                     # Submit the handle_client function to the thread pool
                     executor.submit(self.handle_client, client_socket, client_address)
@@ -66,6 +80,13 @@ class Server():
 
 
     def handle_client(self, client_socket, client_address):
+        """
+        Handle client connections and messages.
+
+        Args:
+        - client_socket (socket): Socket object representing the client connection.
+        - client_address (tuple): Tuple containing client's IP address and port.
+        """
         while True:
             # User already authed
             if client_socket in self.clients.values():
@@ -76,6 +97,13 @@ class Server():
                 self.handle_auth(client_socket, client_address)
 
     def broadcast_message(self, client_socket, message):
+        """
+        Broadcast a message from one client to all other connected clients.
+
+        Args:
+        - client_socket (socket): Socket object representing the sender.
+        - message (str): The message to be broadcasted.
+        """
         # TODO: Handle the case when get_key_from_value returns None
         username, _, color = get_key_from_value(self.clients, client_socket).split(':')
         for sock in self.clients.values():
@@ -84,6 +112,13 @@ class Server():
                 sock.sendall(f"{color}{username}: {message}\033[39m".encode())
 
     def handle_auth(self, client_socket, client_address):
+        """
+        Handle authentication for new clients attempting to connect to the server.
+
+        Args:
+        - client_socket (socket): Socket object representing the client connection.
+        - client_address (tuple): Tuple containing client's IP address and port.
+        """
         creds = client_socket.recv(1024).decode()
         username, password = creds.split(':')
         if self.authenticate_user(username, password):
@@ -97,17 +132,27 @@ class Server():
 
         else:
             # If not authenticated, close the connection
-            print("Authentication failed.")
+            print("[LOG]: Authentication Failed.")
             client_socket.sendall("Authentication failed. Closing connection.".encode())
             client_socket.close()
 
     def authenticate_user(self, username, password):
-        print("Authenticating user")
+        """
+        Authenticate a user based on the provided username and password.
+
+        Args:
+        - username (str): The username to be authenticated.
+        - password (str): The password associated with the username.
+
+        Returns:
+        - bool: True if authentication succeeds, False otherwise.
+        """
+        print("[LOG]: Authenticating user")
         if self.db.is_account_exist(username):
             hashed_pass = hashlib.sha256(password.encode('utf-8')).hexdigest()
             if self.db.get_password(username) == hashed_pass:
+                print("[LOG]: Authentication was succssful")
                 return True
-
         return False
 
 
