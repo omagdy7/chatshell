@@ -2,8 +2,9 @@
 # DONE: Implement Basic Messeaging Functionality
 # DONE: Implement storing a hash of the password instead of plain text
 # DONE: Fix get_color bug it will enter infinite loop if we have more than 6 clients
+# TODO: Store online clients in database instead of holding them as an object in the server class
 # TODO: When a client closes the connection remove him from current online clients
-# TODO: Find a way to make the database hanlde authentication
+# TODO: Find a way to make the database handle authentication
 
 import socket
 from colorama import Fore
@@ -20,7 +21,8 @@ def reset_colors():
 
 def get_color():
     # To avoid infinte loop reset colors and reuse them if the clients are more than len(colors)
-    if all(item[1] is True for item in colors):
+    if all(item[1] for item in colors):
+        print("Reseting colors")
         reset_colors()
 
     rand_color = colors[random.randint(0, len(colors) - 1)]
@@ -74,29 +76,30 @@ class Server():
                 self.handle_auth(client_socket, client_address)
 
     def broadcast_message(self, client_socket, message):
-            username, _, color = get_key_from_value(self.clients, client_socket).split(':')
-            for sock in self.clients.values():
-                if sock != client_socket:
-                    # \033[39m just resets the color is a special code that resets the color
-                    sock.sendall(f"{color}{username}: {message}\033[39m".encode())
+        # TODO: Handle the case when get_key_from_value returns None
+        username, _, color = get_key_from_value(self.clients, client_socket).split(':')
+        for sock in self.clients.values():
+            if sock != client_socket:
+                # \033[39m just resets the color is a special code that resets the color
+                sock.sendall(f"{color}{username}: {message}\033[39m".encode())
 
     def handle_auth(self, client_socket, client_address):
-            creds = client_socket.recv(1024).decode()
-            username, password = creds.split(':')
-            if self.authenticate_user(username, password):
-                # If authenticated, add the client to the dictionary of connected clients
-                client_id = f"{username}:{str(client_address)}:{str(get_color())}"
-                self.clients[client_id] = client_socket
+        creds = client_socket.recv(1024).decode()
+        username, password = creds.split(':')
+        if self.authenticate_user(username, password):
+            # If authenticated, add the client to the dictionary of connected clients
+            client_id = f"{username}:{str(client_address)}:{str(get_color())}"
+            self.clients[client_id] = client_socket
 
-                # Send a welcome message to in the chat room
-                for sock in self.clients.values():
-                    sock.sendall(f"Welcome to the chat! {username}".encode())
+            # Send a welcome message to in the chat room
+            for sock in self.clients.values():
+                sock.sendall(f"Welcome to the chat! {username}".encode())
 
-            else:
-                # If not authenticated, close the connection
-                print("Authentication failed.")
-                client_socket.sendall("Authentication failed. Closing connection.".encode())
-                client_socket.close()
+        else:
+            # If not authenticated, close the connection
+            print("Authentication failed.")
+            client_socket.sendall("Authentication failed. Closing connection.".encode())
+            client_socket.close()
 
     def authenticate_user(self, username, password):
         print("Authenticating user")

@@ -1,3 +1,5 @@
+# TODO: Find a proper way to disconnect users(It currently spams messages to other when a user tries to diconnect)
+
 import socket
 import threading
 from colorama import Fore
