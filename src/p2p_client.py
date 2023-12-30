@@ -1,6 +1,6 @@
-from math import log
 import socket
 import threading
+import json
 import random
 import sys
 from colorama import Fore
@@ -39,15 +39,23 @@ USAGE = """
 """
 
 # Create a Client class to handle the client-side functionality of the chat application
-class Client:
-    def __init__(self, server_host, server_port):
-        """
-        Initialize the Client class.
+class P2PClient:
+    """
+    Represents a client for a chat application.
 
-        Args:
-        - server_host (str): The server's host IP address.
-        - server_port (int): The server's port number.
-        """
+    Attributes:
+    - server_host (str): The hostname of the chat server.
+    - server_port (int): The port number of the chat server.
+    - username (str): The username of the client. Default is None.
+    - room (str): The room the client is currently in. Default is an empty string.
+    - color (str): The color associated with the client. Default is an empty string.
+    - client_socket (socket.socket): The TCP socket used for client-server communication.
+    - udp_socket (socket.socket): The UDP socket used for peer-to-peer communication.
+    - peers (dict): A dictionary to store information about connected peers.
+    - receive_thread (threading.Thread): Thread for receiving messages from the peers.
+    - receive_peer_thread (threading.Thread): Thread for receiving peers from server
+    """
+    def __init__(self, server_host, server_port):
         self.username = None
         self.room = ""
         self.color = ""
@@ -57,6 +65,7 @@ class Client:
         self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.peers = {}
         self.receive_thread = threading.Thread(target=self.receive_message)
+        self.receive_peer_thread = threading.Thread(target=self.recieve_peer_from_server)
 
     def connect(self):
         """
@@ -64,29 +73,28 @@ class Client:
         """
         try:
             self.client_socket.connect((self.server_host, self.server_port))
-            print(f"Connected to server at {self.server_host}:{self.server_port}")
         except ConnectionRefusedError:
             print("Connection refused. Make sure the server is running.")
 
 
     def connect_udp(self):
         """
-        Establish a connection with the server.
+        Bind the udp socket to a random port.
         """
         try:
             self.udp_socket.bind(('127.0.0.1', random.randint(8000, 10000)))
         except OSError as e:
             print(f"Error occurred: {e}")
 
-    def send_message(self, message):
+    def send_message(self, payload):
         """
         Send a message to the server.
 
         Args:
-        - message (str): The message to be sent.
+        - payload (str): The payload to be sent.
         """
         try:
-            self.client_socket.sendall(message.encode())
+            self.client_socket.sendall(json.dumps(payload).encode('utf-8'))
         except ConnectionError:
             print("Error sending message. Disconnected.")
 
@@ -97,11 +105,32 @@ class Client:
         Args:
         - message (str): The message to be sent.
         """
-        peers = db.get_chat_room_peers(chat_client.room)
-        if peers:
-            for name, peer in peers.items():
-                if name != chat_client.username and db.is_user_online(name):
-                    chat_client.udp_socket.sendto(message.encode(), (peer["ip"], peer["port"]))
+        for name, peer in self.peers.items():
+            if name != chat_client.username and db.is_user_online(name):
+                chat_client.udp_socket.sendto(message.encode(), (peer["ip"], peer["port"]))
+
+    def recieve_peer_from_server(self):
+        """
+        Listen for incoming messages from the server.
+        """
+        try:
+            while True:
+                try:
+                    message = self.client_socket.recv(1024).decode('utf-8').split(':')
+                    if message[0] == "refresh":
+                        self.peers = db.get_chat_room_peers(message[1])
+                        msg = f"{self.username} joined the room!\033[39m"
+                        self.send_message_to_peers(msg)
+                    if message[0] == "delete":
+                        del self.peers[message[1]]
+                        msg = f"{self.username} left the room :(\033[39m"
+                        self.send_message_to_peers(msg)
+                    if not message:
+                        break
+                except KeyboardInterrupt:
+                    break
+        except ConnectionError:
+            print("Disconnected.")
 
     def receive_message(self):
         """
@@ -125,19 +154,11 @@ class Client:
         Start the thread for receiving messages.
         """
         self.receive_thread.start()
-
-    def stop_receive_thread(self):
-        """
-        Stop the thread for receiving messages.
-        """
-        self.receive_thread.start()
+        self.receive_peer_thread.start()
 
     def sign_up(self):
         """
         Register a new user by sending registration credentials to the database
-
-        Args:
-        - creds (str): User credentials in the format 'username:password'.
         """
         username = input("Username: ")
         password = input("Password: ")
@@ -154,9 +175,6 @@ class Client:
     def login(self):
         """
         Send login credentials to the server for authentication.
-
-        Args:
-        - creds (str): User credentials in the format 'username:password'.
         """
         username = input("Username: ")
         password = input("Password: ")
@@ -178,32 +196,81 @@ class Client:
 
 
 def join_room(name, chat_client):
+    """
+    Joins a chat room if the client is not already in it.
+
+    Args:
+    - name (str): The name of the room to join.
+    - chat_client (P2PClient): An instance of the ChatClient class.
+
+    If the client is not in the specified room, it adds the client as a peer in the room,
+    updates the client's room attribute, sends a join room command to the server,
+    and notifies peers about the client joining.
+    """
     if chat_client.room != name:
         ip, port = chat_client.udp_socket.getsockname()
-        db.add_peer(name, chat_client.username, {"ip": ip, "port": port })
-        chat_client.room = name
-        peers = db.get_chat_room_peers(name)
-        chat_client.peers = peers
-        msg = f"{chat_client.username} joined the room!\n> \033[39m"
-        chat_client.send_message_to_peers(msg)
+        if name in db.get_chatrooms():
+            db.add_peer(name, chat_client.username, {"ip": ip, "port": port })
+            chat_client.room = name
+            chat_client.send_message({"command": "join_room", "chat_room_name": name })
+            msg = f"{chat_client.username} joined the room!\n> \033[39m"
+            chat_client.send_message_to_peers(msg)
+        else:
+            print(f"A room with name {name} doesn't exisits")
+
     else:
         print("You are already in this room.")
 
+def list_rooms():
+    """
+    Prints a list of available chat rooms retrieved from the database.
+    """
+    for room in db.get_chatrooms():
+        print(room)
+
 def create_room(name):
+    """
+    Creates a new chat room.
+
+    Args:
+    - name (str): The name of the new chat room.
+    """
     db.add_chat_room(name)
 
 def help():
+    """
+    Displays usage information.
+    """
     print(USAGE)
 
 def logout(chat_client):
+    """
+    Logs out the user from the chat application.
+
+    Args:
+    - chat_client (P2PClient): An instance of the ChatClient class.
+
+    Sends a leave message to peers, sets the user's online status to False,
+    sends a disconnect command to the server, disconnects the client, and exits the system.
+    """
     msg = f"{chat_client.username} left the room :(\033[39m"
     chat_client.send_message_to_peers(msg)
     db.set_user_online_status(chat_client.username, False)
+    chat_client.send_message({"command": "disconnect", "chat_room_name": chat_client.room, "username": chat_client.username })
     print("logging out...")
     chat_client.disconnect()
-    sys.exit(1)
+    sys.exit(0)
 
-def menu(logged_in):
+def menu(chat_client, logged_in):
+    """
+    Provides a menu interface for user actions.
+
+    Args:
+    - chat_client (ChatClient): An instance of the ChatClient class.
+    - logged_in (bool): Indicates if the user is logged in or not.
+
+    Displays a menu with options for signup, login, and exiting the system.
+    """
     while not logged_in:
         print("Menu:")
         print("1. Signup")
@@ -214,6 +281,8 @@ def menu(logged_in):
             chat_client.sign_up()
         elif choice == '2':
             logged_in = chat_client.login()
+            if not logged_in:
+                print("The username or password is incorrect")
         elif choice == '3':
             print("Exiting...")
             sys.exit(0)
@@ -224,7 +293,7 @@ def init_client():
     HOST = '127.0.0.1'
     PORT = 12345
 
-    chat_client = Client(HOST, PORT)
+    chat_client = P2PClient(HOST, PORT)
     chat_client.connect()
     chat_client.connect_udp()
 
@@ -236,23 +305,11 @@ def init_client():
     chat_client.start_receive_thread()
     return chat_client
 
-COMMANDS = {
-    "/help": help,
-    "/create_room": create_room,
-    "/join_room": join_room,
-    "/logout": logout,
-}
-
-def command(command, name, chat_client):
-    COMMANDS[command]
-
-
-
 # Usage example:
 if __name__ == "__main__":
     chat_client = init_client()
     logged_in = False
-    menu(logged_in)
+    menu(chat_client, logged_in)
 
 
     # Loop for sending messages
@@ -267,6 +324,8 @@ if __name__ == "__main__":
                 create_room(message[1])
             elif message[0] == "/join_room":
                 join_room(message[1], chat_client)
+            elif message[0] == "/list_rooms":
+                list_rooms()
             elif message[0] == "/logout":
                 logout(chat_client)
             else:
@@ -275,6 +334,7 @@ if __name__ == "__main__":
                         chat_client.color = get_color()
                     msg = f"{chat_client.color}{chat_client.username}: {msg}\033[39m"
                     chat_client.send_message_to_peers(msg)
+        
         except KeyboardInterrupt:
             chat_client.disconnect()
             sys.exit(1)

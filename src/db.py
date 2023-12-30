@@ -1,5 +1,8 @@
 import hashlib
 from pymongo import MongoClient
+import logging
+
+logging.basicConfig(level=logging.INFO, filename='./logs/logs.log', format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Includes database operations
 class DB:
@@ -25,9 +28,9 @@ class DB:
         }
         result = self.db.users.insert_one(user)
         if result.inserted_id:
-            print("[DB] User inserted successfully with ID:", result.inserted_id)
+            logging.info("[DB] User inserted successfully with ID:", result.inserted_id)
         else:
-            print("[DB] Failed to insert user.")
+            logging.info("[DB] Failed to insert user.")
 
 
     # retrieves the password for a given username
@@ -36,7 +39,7 @@ class DB:
         if user:
             return user["password"]
         else:
-            print(f"[DB] User {username} wasn't found")
+            logging.info(f"[DB] User {username} wasn't found")
 
 
     # checks if an account with the username online
@@ -54,13 +57,13 @@ class DB:
                 {"username": user["username"]},
                 {"$set": {"online": status}}
             )
-            print(f"[DB] Set {username} status to {status}")
+            logging.info(f"[DB] Set {username} status to {status}")
         else:
-            print(f"[DB] User {username} wasn't found")
+            logging.info(f"[DB] User {username} wasn't found")
 
 
     def auth_user(self, username, password):
-        print(f"[DB] Authenticating user {username}")
+        logging.info(f"[DB] Authenticating user {username}")
         if self.is_account_exist(username):
             hashed_pass = hashlib.sha256(password.encode('utf-8')).hexdigest()
             if self.get_password(username) == hashed_pass:
@@ -69,17 +72,17 @@ class DB:
     
     # logs in the user
     def login_user(self, creds):
-        print("[DB] Authenticating user")
+        logging.info("[DB] Authenticating user")
         if self.is_account_exist(creds["username"]):
             hashed_pass = hashlib.sha256(creds["password"].encode('utf-8')).hexdigest()
             if self.get_password(creds["username"]) == hashed_pass:
                 self.set_user_online_status(creds["username"], True)
                 return True
             else:
-                print(f"[DB] Wrong password")
+                logging.info(f"[DB] Wrong password")
                 return False
         else:
-            print(f"[DB] {creds['username']} doesn't exist")
+            logging.info(f"[DB] {creds['username']} doesn't exist")
             return False
 
     # logs out the user 
@@ -91,10 +94,15 @@ class DB:
             "name": chat_room_name,
             "peers": {}
         }
-        print(f"[DB] Added {chat_room_name} room to chatrooms")
+        logging.info(f"[DB] Added {chat_room_name} room to chatrooms")
         self.db.chatrooms.insert_one(chat_room)
-
     
+    def get_chatrooms(self):
+        result = self.db.chatrooms.find({}, {'name': 1, '_id': 0})
+        chatroom_names = [doc['name'] for doc in result]
+        return chatroom_names
+
+
     def get_chat_room_peers(self, chat_room_name):
         # Find the chat room by its name
         chat_room = self.db.chatrooms.find_one({"name": chat_room_name})
@@ -102,7 +110,7 @@ class DB:
         if chat_room:
             return chat_room["peers"]
         else:
-            print(f"[DB] room {chat_room_name} wasn't found")
+            logging.info(f"[DB] room {chat_room_name} wasn't found")
             return None
 
     def add_peer(self, chat_room_name, peer_name, peer):
@@ -114,9 +122,9 @@ class DB:
                 {"_id": chat_room["_id"]},
                 {"$set": {f"peers.{peer_name}": peer}}
             )
-            print(f"[DB] Added {peer_name} to the {chat_room_name} chat room.")
+            logging.info(f"[DB] Added {peer_name} to the {chat_room_name} chat room.")
         else:
-            print(f"[DB] Chat room {chat_room_name} not found.")
+            logging.info(f"[DB] Chat room {chat_room_name} not found.")
 
     # retrieves the ip address and the port number of the username
     def get_peer_ip_port(self, chat_room_name, username):
@@ -126,6 +134,6 @@ class DB:
             if peer:
                 return (peer["ip"], peer["port"])
             else:
-                print(f"[DB] peer {username} wasn't found")
+                logging.info(f"[DB] peer {username} wasn't found")
         else:
-            print(f"[DB] room {chat_room_name} wasn't found")
+            logging.info(f"[DB] room {chat_room_name} wasn't found")
