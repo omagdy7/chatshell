@@ -125,22 +125,6 @@ class Server():
             elif message[0] == "/disconnect":
                 pass
 
-    def broadcast_message(self, client_socket, message):
-        """
-        Broadcast a message from one client to all other connected clients.
-
-        Args:
-        - client_socket (socket): Socket object representing the sender.
-        - message (str): The message to be broadcasted.
-        """
-        # TODO: Handle the case when get_key_from_value returns None
-        username, _, color = get_key_from_value(self.clients, client_socket).split(':')
-        for sock in self.clients.values():
-            if sock != client_socket:
-                # \033[39m just resets the color is a special code that resets the color
-                sock.sendall(f"{color}{username}: {message}\033[39m".encode())
-
-
     def stop(self):
         self.server_socket.close()
 

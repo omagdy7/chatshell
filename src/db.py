@@ -40,19 +40,21 @@ class DB:
 
 
     # checks if an account with the username online
-    def is_account_online(self, username):
-        return self.db.online_peers.find_one({"username": username}) is not None
+    def is_user_online(self, username):
+        user = self.db.users.find_one({"username": username}, {"_id": 0, "online": 1})
+        if user:
+            return user["online"]
+        else: 
+            return False
 
     def set_user_online_status(self, username, status):
         user = self.db.users.find_one({"username": username})
-
         if user:
-            # Update the chat room's 'peers' field by appending the new peer
-            self.db.chatrooms.update_one(
-                {"_id": user["_id"]},
+            self.db.users.update_one(
+                {"username": user["username"]},
                 {"$set": {"online": status}}
             )
-            print(f"[DB] Set {username} status to online")
+            print(f"[DB] Set {username} status to {status}")
         else:
             print(f"[DB] User {username} wasn't found")
 
