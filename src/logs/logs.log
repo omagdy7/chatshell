@@ -1,0 +1,123 @@
+2024-01-08 02:51:52,500 - INFO - [SERVER]: Listening on 127.0.0.1:12345
+2024-01-08 02:52:10,396 - INFO - [SERVER]: Connection established with ('127.0.0.1', 40258)
+2024-01-08 02:52:15,981 - INFO - [DB] User None wasn't found
+2024-01-08 02:52:43,085 - INFO - [SERVER]: Connection established with ('127.0.0.1', 33434)
+2024-01-08 02:52:45,238 - INFO - [DB] User None wasn't found
+2024-01-08 02:53:02,732 - INFO - [SERVER]: Listening on 127.0.0.1:12345
+2024-01-08 02:53:10,534 - INFO - [SERVER]: Connection established with ('127.0.0.1', 58376)
+2024-01-08 02:53:18,204 - INFO - [DB] User inserted successfully with ID: 659b477e0acb029066fd3fe6
+2024-01-08 02:54:29,419 - INFO - [DB] Set omar status to False
+2024-01-08 02:54:44,526 - INFO - [SERVER]: Listening on 127.0.0.1:12345
+2024-01-08 02:54:51,121 - INFO - [SERVER]: Connection established with ('127.0.0.1', 53100)
+2024-01-08 02:54:59,909 - INFO - [DB] Set omar status to False
+2024-01-08 02:55:57,930 - INFO - [SERVER]: Listening on 127.0.0.1:12345
+2024-01-08 02:56:06,464 - INFO - [SERVER]: Connection established with ('127.0.0.1', 34442)
+2024-01-08 02:56:13,842 - INFO - [DB] User inserted successfully with ID: 659b482ddd3acd182deb2aad
+2024-01-08 02:56:32,225 - INFO - [DB] Authenticating user
+2024-01-08 02:56:32,229 - INFO - [DB] Set omar status to True
+2024-01-08 02:57:11,563 - INFO - [SERVER]: Connection established with ('127.0.0.1', 39838)
+2024-01-08 02:57:19,169 - INFO - [DB] User inserted successfully with ID: 659b486f2f75bbcf11fe82da
+2024-01-08 02:57:44,542 - INFO - [DB] Set omar status to False
+2024-01-08 02:57:47,804 - INFO - [DB] Set omar status to False
+2024-01-08 02:59:12,830 - INFO - [SERVER]: Connection established with ('127.0.0.1', 51044)
+2024-01-08 02:59:16,888 - INFO - [DB] Authenticating user
+2024-01-08 02:59:16,890 - INFO - [DB] Set omar status to True
+2024-01-08 02:59:19,169 - INFO - [SERVER]: Connection established with ('127.0.0.1', 38530)
+2024-01-08 02:59:47,163 - INFO - [SERVER]: Connection established with ('127.0.0.1', 44430)
+2024-01-08 03:00:10,851 - INFO - [SERVER]: Connection established with ('127.0.0.1', 55836)
+2024-01-08 03:00:22,841 - INFO - [DB] User None wasn't found
+2024-01-08 03:00:23,965 - INFO - [SERVER]: Connection established with ('127.0.0.1', 40100)
+2024-01-08 03:00:31,162 - INFO - [DB] Set omar status to False
+2024-01-08 03:00:59,045 - INFO - [SERVER]: Connection established with ('127.0.0.1', 47880)
+2024-01-08 03:01:02,933 - INFO - [DB] Authenticating user
+2024-01-08 03:01:02,938 - INFO - [DB] Set omar status to True
+2024-01-08 03:01:49,623 - INFO - [SERVER]: Connection established with ('127.0.0.1', 55678)
+2024-01-08 03:01:58,410 - INFO - [DB] Set omar status to False
+2024-01-08 03:02:52,958 - INFO - [DB] Set omar status to False
+2024-01-08 03:02:55,266 - INFO - [DB] Set omar status to False
+2024-01-08 03:02:57,517 - INFO - [SERVER]: Connection established with ('127.0.0.1', 48824)
+2024-01-08 03:03:07,153 - INFO - [DB] User inserted successfully with ID: 659b49cb21e0299171140246
+2024-01-08 03:03:11,066 - INFO - [DB] Authenticating user
+2024-01-08 03:03:11,068 - INFO - [DB] Set omar status to True
+2024-01-08 03:03:13,891 - INFO - [SERVER]: Connection established with ('127.0.0.1', 51254)
+2024-01-08 03:04:21,351 - INFO - [DB] Set omar status to False
+2024-01-08 03:04:23,669 - INFO - [SERVER]: Connection established with ('127.0.0.1', 36656)
+2024-01-08 03:04:27,175 - INFO - [DB] User inserted successfully with ID: 659b4a1bba20d3c1ee58280a
+2024-01-08 03:04:33,086 - INFO - [DB] Set omar status to False
+2024-01-08 03:06:30,214 - INFO - [DB] User None wasn't found
+2024-01-08 03:06:50,763 - INFO - [SERVER]: Listening on 127.0.0.1:12345
+2024-01-08 03:07:10,286 - INFO - [SERVER]: Listening on 127.0.0.1:12345
+2024-01-08 03:07:21,888 - INFO - [SERVER]: Connection established with ('127.0.0.1', 51032)
+2024-01-08 03:07:35,161 - INFO - [DB] User inserted successfully with ID: 659b4ad7800d590b7761c238
+2024-01-08 03:07:42,182 - INFO - [DB] Authenticating user
+2024-01-08 03:07:42,186 - INFO - [DB] Set omar status to True
+2024-01-08 03:08:04,898 - INFO - [SERVER]: Connection established with ('127.0.0.1', 57018)
+2024-01-08 03:08:14,612 - INFO - [DB] User inserted successfully with ID: 659b4afe43f426ae446e4c7b
+2024-01-08 03:08:32,150 - INFO - [DB] Authenticating user
+2024-01-08 03:08:32,154 - INFO - [DB] Set ahmed status to True
+2024-01-08 03:08:45,011 - INFO - [DB] Added sports room to chatrooms
+2024-01-08 03:08:45,012 - INFO - [DB Chat room was added successfully with ID: 659b4b1d800d590b7761c239
+2024-01-08 03:08:57,792 - INFO - [DB] Added ahmed to the sports chat room.
+2024-01-08 03:08:57,792 - INFO - [SERVER]: Sending notification to all peers in the chat room to referesh their peers
+2024-01-08 03:09:01,699 - INFO - [DB] Added omar to the sports chat room.
+2024-01-08 03:09:01,699 - INFO - [SERVER]: Sending notification to all peers in the chat room to referesh their peers
+2024-01-08 03:09:26,060 - INFO - [DB] Set ahmed status to False
+2024-01-08 03:09:26,061 - INFO - [SERVER]: Sending notification to all peers in the chat room to remove ahmed
+2024-01-08 03:09:26,063 - INFO - [DB] Set ahmed status to False
+2024-01-08 03:09:26,064 - INFO - [DB] Set ahmed status to False
+2024-01-08 03:09:41,926 - INFO - [DB] Authenticating user
+2024-01-08 03:09:41,930 - INFO - [DB] Set ahmed status to True
+2024-01-08 03:10:17,698 - INFO - [DB] Set omar status to False
+2024-01-08 03:11:37,507 - INFO - [SERVER]: Listening on 127.0.0.1:12345
+2024-01-08 03:11:47,684 - INFO - [SERVER]: Connection established with ('127.0.0.1', 59914)
+2024-01-08 03:12:10,309 - INFO - [DB] User inserted successfully with ID: 659b4bea50987d843c9572ac
+2024-01-08 03:12:18,570 - INFO - [DB] Authenticating user
+2024-01-08 03:12:18,573 - INFO - [DB] Wrong password
+2024-01-08 03:13:14,391 - INFO - [DB] Set omar status to False
+2024-01-08 03:14:21,622 - INFO - [SERVER]: Listening on 127.0.0.1:12345
+2024-01-08 03:14:29,078 - INFO - [SERVER]: Connection established with ('127.0.0.1', 40498)
+2024-01-08 03:14:53,203 - INFO - [DB] User inserted successfully with ID: 659b4c8debd6cd7cee5f6eda
+2024-01-08 03:15:01,049 - INFO - [DB] Authenticating user
+2024-01-08 03:15:01,051 - INFO - [DB] Wrong password
+2024-01-08 03:15:08,683 - INFO - [DB] Authenticating user
+2024-01-08 03:15:08,687 - INFO - [DB] Set omar status to True
+2024-01-08 03:15:33,269 - INFO - [SERVER]: Connection established with ('127.0.0.1', 60922)
+2024-01-08 03:15:38,846 - INFO - [DB] User inserted successfully with ID: 659b4cba17c525bd45987dd2
+2024-01-08 03:15:56,474 - INFO - [DB] Authenticating user
+2024-01-08 03:15:56,479 - INFO - [DB] Set ahmed status to True
+2024-01-08 03:16:07,602 - INFO - [DB] Added sports room to chatrooms
+2024-01-08 03:16:07,604 - INFO - [DB Chat room was added successfully with ID: 659b4cd7ebd6cd7cee5f6edb
+2024-01-08 03:16:20,614 - INFO - [DB] Added ahmed to the sports chat room.
+2024-01-08 03:16:20,615 - INFO - [SERVER]: Sending notification to all peers in the chat room to referesh their peers
+2024-01-08 03:16:26,767 - INFO - [DB] Added omar to the sports chat room.
+2024-01-08 03:16:26,767 - INFO - [SERVER]: Sending notification to all peers in the chat room to referesh their peers
+2024-01-08 03:16:49,443 - INFO - [SERVER]: Connection established with ('127.0.0.1', 59474)
+2024-01-08 03:16:59,833 - INFO - [DB] User inserted successfully with ID: 659b4d0b3404e3535f33abf8
+2024-01-08 03:17:05,718 - INFO - [DB] Authenticating user
+2024-01-08 03:17:05,722 - INFO - [DB] Set osama status to True
+2024-01-08 03:17:20,702 - INFO - [DB] Added networks room to chatrooms
+2024-01-08 03:17:20,703 - INFO - [DB Chat room was added successfully with ID: 659b4d203404e3535f33abf9
+2024-01-08 03:17:23,365 - INFO - [SERVER]: Connection established with ('127.0.0.1', 58122)
+2024-01-08 03:17:52,073 - INFO - [DB] User inserted successfully with ID: 659b4d4007128ce96533023a
+2024-01-08 03:17:59,841 - INFO - [DB] Authenticating user
+2024-01-08 03:17:59,846 - INFO - [DB] Set khaled status to True
+2024-01-08 03:18:09,207 - INFO - [DB] Added khaled to the networks chat room.
+2024-01-08 03:18:09,207 - INFO - [SERVER]: Sending notification to all peers in the chat room to referesh their peers
+2024-01-08 03:18:37,798 - INFO - [DB] Added osama to the networks chat room.
+2024-01-08 03:18:37,798 - INFO - [SERVER]: Sending notification to all peers in the chat room to referesh their peers
+2024-01-08 03:18:56,785 - INFO - [DB] Set khaled status to False
+2024-01-08 03:18:56,785 - INFO - [SERVER]: Sending notification to all peers in the chat room to remove khaled
+2024-01-08 03:18:56,787 - INFO - [DB] Set khaled status to False
+2024-01-08 03:18:56,789 - INFO - [DB] Set khaled status to False
+2024-01-08 03:19:10,031 - INFO - [DB] Set osama status to False
+2024-01-08 03:19:10,031 - INFO - [SERVER]: Sending notification to all peers in the chat room to remove osama
+2024-01-08 03:19:10,032 - INFO - [DB] Set osama status to False
+2024-01-08 03:19:10,032 - INFO - [DB] Set osama status to False
+2024-01-08 03:19:14,650 - INFO - [DB] Set ahmed status to False
+2024-01-08 03:19:14,651 - INFO - [SERVER]: Sending notification to all peers in the chat room to remove ahmed
+2024-01-08 03:19:14,653 - INFO - [DB] Set ahmed status to False
+2024-01-08 03:19:14,654 - INFO - [DB] Set ahmed status to False
+2024-01-08 03:19:19,144 - INFO - [DB] Set omar status to False
+2024-01-08 03:19:19,144 - INFO - [SERVER]: Sending notification to all peers in the chat room to remove omar
+2024-01-08 03:19:19,146 - INFO - [DB] Set omar status to False
+2024-01-08 03:19:19,147 - INFO - [DB] Set omar status to False

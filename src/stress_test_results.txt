@@ -1,0 +1,2 @@
+Room stress_test_room was created succssefully.
+Signup and loging in and joining rooms and sending messeages in room stress_test_room took : 10.516418695449829 seconds with 1000 clients

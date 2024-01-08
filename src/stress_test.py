@@ -21,7 +21,6 @@ def login_stress_test(username, password):
     chat_client.connect()
     chat_client.connect_udp()
 
-    # Simulate login with provided username and password
     chat_client.login_stress_test(username, password)
 
     chat_client.disconnect()
@@ -31,7 +30,6 @@ def join_room_stress_test(username, password):
     chat_client.connect()
     chat_client.connect_udp()
 
-    # Simulate login with provided username and password
     chat_client.login_stress_test(username, password)
     join_room("stress_test_room", chat_client)
     msg = f"Stress test message"
@@ -46,6 +44,8 @@ client_threads = []
 
 # Start time
 start_time = time.time()
+
+# create chat room for stress testing
 create_room("stress_test_room")
 
 # Simulate signup stress test concurrently

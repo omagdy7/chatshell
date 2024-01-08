@@ -1,4 +1,5 @@
 from enum import Enum
+from getpass import getpass
 import os
 import socket
 import threading
@@ -185,7 +186,7 @@ class P2PClient:
         Register a new user by sending registration credentials to the database
         """
         username = input("Username: ")
-        password = input("Password: ")
+        password = getpass("Password: ")
         ip, port = self.udp_socket.getsockname()
         user = {
             "username": username,
@@ -197,6 +198,7 @@ class P2PClient:
         if db.is_account_exist(user["username"]):
             print(f"An account with username '{user['username']}' already exists try another username")
         else:
+            print(f"An account with username '{user['username']}' was created succssefully")
             db.register(user)
 
     def login_stress_test(self, username, password):
@@ -222,7 +224,7 @@ class P2PClient:
         Send login credentials to the server for authentication.
         """
         username = input("Username: ")
-        password = input("Password: ")
+        password = getpass("Password: ")
         login_payload = {
             "username": username,
             "password": password,
@@ -233,6 +235,7 @@ class P2PClient:
             return LoginState.LOGGED_IN
         else:
             if db.login_user(login_payload):
+                print(f"Login was succssefull")
                 return LoginState.LOGIN_SUCC
             else:
                 return LoginState.LOGIN_FAIL
@@ -331,8 +334,7 @@ def menu(chat_client: P2PClient, login_state: list[LoginState]):
 
     Displays a menu with options for signup, login, and exiting the system.
     """
-    while login_state[0] == LoginState.LOGGED_OUT:
-        print(login_state[0])
+    while login_state[0] != LoginState.LOGIN_SUCC:
         print("Menu:")
         print("1. Signup")
         print("2. Login")
@@ -341,9 +343,7 @@ def menu(chat_client: P2PClient, login_state: list[LoginState]):
         if choice == '1':
             chat_client.sign_up()
         elif choice == '2':
-            print("before", login_state[0])
             login_state[0] = chat_client.login()
-            print("after", login_state[0])
             if login_state[0] == LoginState.LOGIN_FAIL:
                 print("The username or password is incorrect")
         elif choice == '3':
@@ -376,7 +376,7 @@ if __name__ == "__main__":
     # Loop for sending messages
     while True:
         try:
-            if login_state[0] == LoginState.LOGGED_OUT or login_state[0] == LoginState.LOGGED_IN:
+            if login_state[0] != LoginState.LOGIN_SUCC:
                 menu(chat_client, login_state)
             else:
                 message = input(f"{Fore.WHITE}> ")
