@@ -3,7 +3,7 @@ import threading
 import socket
 from unittest.mock import patch, Mock
 from p2p_client import logout
-from p2p_client import P2PClient, LoginState, db
+from p2p_client import P2PClient, LoginState
 
 class TestP2PClient(unittest.TestCase):
     @classmethod
@@ -68,7 +68,6 @@ class TestP2PClient(unittest.TestCase):
 
         self.assertEqual(login_state[0], LoginState.LOGGED_OUT)
 
-    # Add more test methods for other functionalities...
     
 if __name__ == '__main__':
     unittest.main()
