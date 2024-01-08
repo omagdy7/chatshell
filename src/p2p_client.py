@@ -1,12 +1,19 @@
+from enum import Enum
+import os
 import socket
 import threading
 import json
 import random
-import sys
 from colorama import Fore
 from db import DB
 
 db = DB()
+
+class LoginState(Enum):
+    LOGGED_OUT = 0,
+    LOGGED_IN  = 1,
+    LOGIN_SUCC = 2,
+    LOGIN_FAIL = 3,
 
 colors = [(Fore.RED,     False),
           (Fore.GREEN,   False),
@@ -82,7 +89,7 @@ class P2PClient:
         Bind the udp socket to a random port.
         """
         try:
-            self.udp_socket.bind(('127.0.0.1', random.randint(8000, 10000)))
+            self.udp_socket.bind(('127.0.0.1', random.randint(8000, 60000)))
         except OSError as e:
             print(f"Error occurred: {e}")
 
@@ -156,6 +163,23 @@ class P2PClient:
         self.receive_thread.start()
         self.receive_peer_thread.start()
 
+    def sign_up_stress_test(self, username, password):
+        """
+        Register a new user by sending registration credentials to the database
+        """
+        ip, port = self.udp_socket.getsockname()
+        user = {
+            "username": username,
+            "password": password,
+            "ip": ip,
+            "port": port,
+        }
+        self.username = user["username"]
+        if db.is_account_exist(user["username"]):
+            print(f"An account with username '{user['username']}' already exists try another username")
+        else:
+            db.register(user)
+
     def sign_up(self):
         """
         Register a new user by sending registration credentials to the database
@@ -170,7 +194,28 @@ class P2PClient:
             "port": port,
         }
         self.username = user["username"]
-        db.register(user)
+        if db.is_account_exist(user["username"]):
+            print(f"An account with username '{user['username']}' already exists try another username")
+        else:
+            db.register(user)
+
+    def login_stress_test(self, username, password):
+        """
+        Send login credentials to the server for authentication.
+        """
+        login_payload = {
+            "username": username,
+            "password": password,
+        }
+        self.username = username
+        if db.is_user_online(username):
+            print(f"The account with username '{username}' is already logged in on some other device")
+            return LoginState.LOGGED_IN
+        else:
+            if db.login_user(login_payload):
+                return LoginState.LOGIN_SUCC
+            else:
+                return LoginState.LOGIN_FAIL
 
     def login(self):
         """
@@ -183,7 +228,16 @@ class P2PClient:
             "password": password,
         }
         self.username = username
-        return db.login_user(login_payload)
+        if db.is_user_online(username):
+            print(f"The account with username '{username}' is already logged in on some other device")
+            return LoginState.LOGGED_IN
+        else:
+            if db.login_user(login_payload):
+                return LoginState.LOGIN_SUCC
+            else:
+                return LoginState.LOGIN_FAIL
+
+
 
     def disconnect(self):
         """
@@ -216,7 +270,7 @@ def join_room(name, chat_client):
             msg = f"{chat_client.username} joined the room!\n> \033[39m"
             chat_client.send_message_to_peers(msg)
         else:
-            print(f"A room with name {name} doesn't exisits")
+            print(f"Room with name {name} doesn't exist")
 
     else:
         print("You are already in this room.")
@@ -225,6 +279,8 @@ def list_rooms():
     """
     Prints a list of available chat rooms retrieved from the database.
     """
+    if len(db.get_chatrooms()) == 0:
+        print("There is no current rooms on the server try creating your own with /create_room your_room_name")
     for room in db.get_chatrooms():
         print(room)
 
@@ -235,7 +291,10 @@ def create_room(name):
     Args:
     - name (str): The name of the new chat room.
     """
-    db.add_chat_room(name)
+    if db.add_chat_room(name):
+        print(f"Room {name} was created succssefully.")
+    else:
+        print(f"Couldn't create room due to an error in db")
 
 def help():
     """
@@ -243,7 +302,7 @@ def help():
     """
     print(USAGE)
 
-def logout(chat_client):
+def logout(chat_client, login_state):
     """
     Logs out the user from the chat application.
 
@@ -253,25 +312,27 @@ def logout(chat_client):
     Sends a leave message to peers, sets the user's online status to False,
     sends a disconnect command to the server, disconnects the client, and exits the system.
     """
+    login_state[0] = LoginState.LOGGED_OUT
     msg = f"{chat_client.username} left the room :(\033[39m"
     chat_client.send_message_to_peers(msg)
     db.set_user_online_status(chat_client.username, False)
     chat_client.send_message({"command": "disconnect", "chat_room_name": chat_client.room, "username": chat_client.username })
     print("logging out...")
     chat_client.disconnect()
-    sys.exit(0)
+    db.user_logout(chat_client.username)
 
-def menu(chat_client, logged_in):
+def menu(chat_client: P2PClient, login_state: list[LoginState]):
     """
     Provides a menu interface for user actions.
 
     Args:
     - chat_client (ChatClient): An instance of the ChatClient class.
-    - logged_in (bool): Indicates if the user is logged in or not.
+    - login_state (bool): Indicates if the user is logged in or not.
 
     Displays a menu with options for signup, login, and exiting the system.
     """
-    while not logged_in:
+    while login_state[0] == LoginState.LOGGED_OUT:
+        print(login_state[0])
         print("Menu:")
         print("1. Signup")
         print("2. Login")
@@ -280,12 +341,14 @@ def menu(chat_client, logged_in):
         if choice == '1':
             chat_client.sign_up()
         elif choice == '2':
-            logged_in = chat_client.login()
-            if not logged_in:
+            print("before", login_state[0])
+            login_state[0] = chat_client.login()
+            print("after", login_state[0])
+            if login_state[0] == LoginState.LOGIN_FAIL:
                 print("The username or password is incorrect")
         elif choice == '3':
             print("Exiting...")
-            sys.exit(0)
+            os._exit(0)
         else:
             print("Invalid choice. Please enter 1, 2, or 3.")
 
@@ -308,33 +371,40 @@ def init_client():
 # Usage example:
 if __name__ == "__main__":
     chat_client = init_client()
-    logged_in = False
-    menu(chat_client, logged_in)
-
+    login_state = [LoginState.LOGGED_OUT]
 
     # Loop for sending messages
     while True:
         try:
-            message = input(f"{Fore.WHITE}> ")
-            msg = message
-            message = message.split(' ')
-            if message[0] == "/help":
-                help()
-            elif message[0] == "/create_room":
-                create_room(message[1])
-            elif message[0] == "/join_room":
-                join_room(message[1], chat_client)
-            elif message[0] == "/list_rooms":
-                list_rooms()
-            elif message[0] == "/logout":
-                logout(chat_client)
+            if login_state[0] == LoginState.LOGGED_OUT or login_state[0] == LoginState.LOGGED_IN:
+                menu(chat_client, login_state)
             else:
-                if chat_client.room != "":
-                    if chat_client.color == "":
-                        chat_client.color = get_color()
-                    msg = f"{chat_client.color}{chat_client.username}: {msg}\033[39m"
-                    chat_client.send_message_to_peers(msg)
-        
+                message = input(f"{Fore.WHITE}> ")
+                msg = message
+                message = message.split(' ')
+                if message[0] == "/help":
+                    help()
+                elif message[0] == "/create_room":
+                    create_room(message[1])
+                elif message[0] == "/join_room":
+                    join_room(message[1], chat_client)
+                elif message[0] == "/list_rooms":
+                    list_rooms()
+                elif message[0] == "/logout":
+                    logout(chat_client, login_state)
+                elif message[0][0] == '/':
+                    print("That's not a valid command try one of these commands: ")
+                    help()
+                else:
+                    if chat_client.room != "":
+                        if chat_client.color == "":
+                            chat_client.color = get_color()
+                        msg = f"{chat_client.color}{chat_client.username}: {msg}\033[39m"
+                        chat_client.send_message_to_peers(msg)
+                    else:
+                        print("""You can't message anyone because you are not in a room to join a room use the 
+/join_room command and to see what rooms are avilable you can use the /list_rooms command
+                            """)
         except KeyboardInterrupt:
             chat_client.disconnect()
-            sys.exit(1)
+            os._exit(1)

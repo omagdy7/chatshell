@@ -1,4 +1,5 @@
 import json
+import os
 import socket
 import logging
 from concurrent.futures import ThreadPoolExecutor
@@ -6,7 +7,8 @@ from db import DB
 
 db = DB()
 
-logging.basicConfig(level=logging.INFO, filename='./logs/server.log', format='%(asctime)s - %(levelname)s - %(message)s')
+# logging.getLogger()
+# logging.basicConfig(level=logging.INFO, filename='./logs/server.log', format='%(asctime)s - %(levelname)s - %(message)s')
 
 class P2PServer():
     def __init__(self, host, port):
@@ -41,6 +43,7 @@ class P2PServer():
                     executor.submit(self.handle_client, client_socket)
                 except KeyboardInterrupt:
                     self.stop()
+                    os._exit(1)
 
 
     def handle_client(self, client_socket):

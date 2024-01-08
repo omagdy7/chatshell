@@ -28,9 +28,9 @@ class DB:
         }
         result = self.db.users.insert_one(user)
         if result.inserted_id:
-            logging.info("[DB] User inserted successfully with ID:", result.inserted_id)
+            logging.info(f"[DB] User inserted successfully with ID: {result.inserted_id}")
         else:
-            logging.info("[DB] Failed to insert user.")
+            logging.error("[DB] Failed to insert user.")
 
 
     # retrieves the password for a given username
@@ -95,7 +95,14 @@ class DB:
             "peers": {}
         }
         logging.info(f"[DB] Added {chat_room_name} room to chatrooms")
-        self.db.chatrooms.insert_one(chat_room)
+        result = self.db.chatrooms.insert_one(chat_room)
+        if result.inserted_id:
+            logging.info(f"[DB Chat room was added successfully with ID: {result.inserted_id}")
+            return True
+        else:
+            logging.error("[DB] Failed to create room.")
+            return False
+
     
     def get_chatrooms(self):
         result = self.db.chatrooms.find({}, {'name': 1, '_id': 0})
